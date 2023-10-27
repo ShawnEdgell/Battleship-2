@@ -1,10 +1,11 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
+import ReactDOM from 'react-dom';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+function App() {
+    return <div>Hello, Battleship!</div>;
+}
+
+const root = document.getElementById('root');
+const appRoot = ReactDOM.createRoot(root);
+appRoot.render(<App />);
+
+export default App;
