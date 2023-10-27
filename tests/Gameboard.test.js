@@ -19,10 +19,37 @@ describe('Gameboard', () => {
         expect(gameboard.getShipAt(0, 0).name).toBe('Carrier');
     });
 
+    it('should throw error for placing ships outside the boundaries', () => {
+        expect(() => gameboard.placeShip('Carrier', 5, 10, 10)).toThrow('Invalid ship placement');
+        expect(() => gameboard.placeShip('Carrier', 5, -1, -1)).toThrow('Invalid ship placement');
+    });
+
+    it('should throw error for overlapping ships', () => {
+        gameboard.placeShip('Carrier', 5, 0, 0);
+        expect(() => gameboard.placeShip('Destroyer', 2, 0, 0)).toThrow('Invalid ship placement');
+    });
+
+    it('should throw error for invalid orientation', () => {
+        expect(() => gameboard.placeShip('Carrier', 5, 0, 0, 'diagonal')).toThrow();
+    });
+
     it('should register hits correctly', () => {
         gameboard.placeShip('Carrier', 5, 0, 0);
         gameboard.receiveAttack(0, 0);
         expect(gameboard.getShipAt(0, 0).isHit(0)).toBeTruthy();
+    });
+
+    it('should throw error for attacks outside boundaries', () => {
+        expect(() => gameboard.receiveAttack(10, 10)).toThrow('Invalid attack coordinates');
+        expect(() => gameboard.receiveAttack(-1, -1)).toThrow('Invalid attack coordinates');
+    });
+
+    it('should register hits on the same position only once', () => {
+        gameboard.placeShip('Carrier', 5, 0, 0);
+        gameboard.receiveAttack(0, 0);
+        gameboard.receiveAttack(0, 0);
+        // Ensure the ship's hit array has only one true value at position 0
+        expect(gameboard.getShipAt(0, 0).hits[0]).toBe(true);
     });
 
     it('should register misses correctly', () => {
@@ -37,6 +64,4 @@ describe('Gameboard', () => {
         }
         expect(gameboard.areAllShipsSunk()).toBeTruthy();
     });
-    
-    // ... Additional tests can be added for further coverage, like verifying invalid placements, etc.
 });

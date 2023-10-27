@@ -18,10 +18,22 @@ describe('Ship', () => {
                 expect(ship.hits).toEqual(new Array(shipData.length).fill(false));
             });
 
+            it('should throw error for non-integer or invalid lengths', () => {
+                expect(() => new Ship(shipData.name, -1)).toThrow();
+                expect(() => new Ship(shipData.name, 0)).toThrow();
+                expect(() => new Ship(shipData.name, "three")).toThrow();
+            });
+
             it('should register hits correctly', () => {
                 const ship = new Ship(shipData.name, shipData.length);
                 ship.hit(0);
                 expect(ship.hits[0]).toBe(true);
+            });
+
+            it('should throw error for hitting the same position multiple times', () => {
+                const ship = new Ship(shipData.name, shipData.length);
+                ship.hit(0);
+                expect(() => ship.hit(0)).toThrow('Position already hit');
             });
 
             it('should throw error for invalid hit position', () => {
