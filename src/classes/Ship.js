@@ -1,14 +1,18 @@
 class Ship {
-    constructor(name, length) {
-      if (typeof name !== 'string') {
-        throw new Error('Ship name (title) must be a string');
-      }
-      if (!Number.isInteger(length) || length <= 0) {
-        throw new Error('Ship length must be a positive integer');
-      }
-      this.name = name;
-      this.length = length;
-      this.hits = Array(length).fill(false);
+    constructor(name, length, orientation = 'horizontal') {
+        if (typeof name !== 'string') {
+            throw new Error('Ship name (title) must be a string');
+        }
+        if (!Number.isInteger(length) || length <= 0) {
+            throw new Error('Ship length must be a positive integer');
+        }
+        if (!['horizontal', 'vertical'].includes(orientation)) {
+            throw new Error('Invalid orientation');
+        }
+        this.name = name;
+        this.length = length;
+        this.orientation = orientation; // New property for orientation
+        this.hits = Array(length).fill(false);
     }
 
     hit(position) {

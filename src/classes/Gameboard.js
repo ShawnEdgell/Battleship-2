@@ -9,8 +9,14 @@ class Gameboard {
     }
 
     placeShip(name, length, x, y, orientation = 'horizontal') {
-        const ship = new Ship(name, length);
-
+        // Check for valid orientation
+        if (!['horizontal', 'vertical'].includes(orientation)) {
+            throw new Error('Invalid orientation');
+        }
+    
+        // Initialize the ship with the provided orientation
+        const ship = new Ship(name, length, orientation);
+    
         if (orientation === 'horizontal') {
             // Check for potential overlap and out of bounds
             for (let i = 0; i < ship.length; i++) {
@@ -35,6 +41,7 @@ class Gameboard {
             }
         }
     }
+    
 
     isOutOfBounds(row, col) {
         return row < 0 || row >= this.rows || col < 0 || col >= this.cols;
@@ -49,25 +56,46 @@ class Gameboard {
         if (ship instanceof Ship) {
             const shipStartRow = this.grid.findIndex((r) => r.includes(ship));
             const shipStartCol = this.grid[shipStartRow].indexOf(ship);
-            
-            const hitPosition = (row - shipStartRow) + (col - shipStartCol);
-            ship.hit(hitPosition);
+
+            const hitPosition = ship.orientation === 'horizontal'
+                ? col - shipStartCol
+                : row - shipStartRow;
+            try {
+                ship.hit(hitPosition);
+            } catch (error) {
+                if (error.message === 'Position already hit') {
+                    return;
+                }
+                throw error;
+            }
         } else {
             this.missedAttacks.push([row, col].toString());
         }
     }
 
     areAllShipsSunk() {
+        const checkedShips = new Set();
+    
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 const ship = this.grid[row][col];
-                if (ship && !ship.isSunk()) {
-                    return false;
+    
+                if (ship && !checkedShips.has(ship)) {
+                    checkedShips.add(ship);
+    
+                    // Debugging: Log the ship and its sunk status
+                    console.log(ship.name, ship.isSunk());
+    
+                    if (!ship.isSunk()) {
+                        return false;
+                    }
                 }
             }
         }
+    
         return true;
     }
+    
 
     getShipAt(row, col) {
         if (this.grid[row][col] instanceof Ship) {
