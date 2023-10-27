@@ -10,6 +10,7 @@ describe('Ship', () => {
     ];
 
     SHIPS_DATA.forEach(shipData => {
+        // eslint-disable-next-line jest/valid-title
         describe(shipData.name, () => {
             it('should initialize properly', () => {
                 const ship = new Ship(shipData.name, shipData.length);

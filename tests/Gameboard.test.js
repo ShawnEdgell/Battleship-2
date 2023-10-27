@@ -60,21 +60,9 @@ describe('Gameboard', () => {
     it('should check if all ships are sunk', () => {
         gameboard.placeShip('Carrier', 5, 0, 0);
 
-        // Debugging: Log the gameboard grid before attacks
-        console.log('Initial Gameboard:');
-        console.log(gameboard.grid.map(row => row.map(cell => cell ? cell.name : null)));
-
         for (let i = 0; i < 5; i++) {
             gameboard.receiveAttack(0, i);
         }
-
-        // Debugging: Log the gameboard grid after attacks
-        console.log('Gameboard After Attacks:');
-        console.log(gameboard.grid.map(row => row.map(cell => cell ? cell.name : null)));
-
-        // Debugging: Check if the ship is sunk
-        const ship = gameboard.getShipAt(0, 0);
-        console.log('Is ship sunk? :', ship.isSunk());  // Should be true
 
         expect(gameboard.areAllShipsSunk()).toBeTruthy();
     });

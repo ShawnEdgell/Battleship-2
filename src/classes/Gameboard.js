@@ -83,9 +83,6 @@ class Gameboard {
                 if (ship && !checkedShips.has(ship)) {
                     checkedShips.add(ship);
     
-                    // Debugging: Log the ship and its sunk status
-                    console.log(ship.name, ship.isSunk());
-    
                     if (!ship.isSunk()) {
                         return false;
                     }
