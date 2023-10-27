@@ -19,6 +19,13 @@ class Ship {
     isSunk() {
         return this.hits.every(hit => hit);
     }
+
+    isHit(position) {
+        if (position < 0 || position >= this.length) {
+            throw new Error('Invalid hit position');
+        }
+        return this.hits[position];
+    }
 }
 
 export default Ship;
