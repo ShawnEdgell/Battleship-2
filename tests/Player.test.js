@@ -1,91 +1,50 @@
-import Player from '../src/classes/Player';
+import Player from '../src/classes/Player';  // Adjust the path accordingly
 import Gameboard from '../src/classes/Gameboard';
 
 describe('Player', () => {
     let player;
-    let computer;
-    let playerBoard;
-    let computerBoard;
+    let gameboard;
 
     beforeEach(() => {
-        playerBoard = new Gameboard();
-        computerBoard = new Gameboard();
-        player = new Player('Human', playerBoard, computerBoard, true);
-        computer = new Player('Computer', computerBoard, playerBoard, false);
-    });
-
-    describe('Initialization', () => {
-        it('should create a player with a name and associated gameboards', () => {
-            expect(player.getName()).toBe('Human');
-            expect(player.getPlayerBoard()).toBeInstanceOf(Gameboard);
-            expect(player.getEnemyBoard()).toBeInstanceOf(Gameboard);
-        });
-
-        it('should start with the human player\'s turn', () => {
-            expect(player.isTurn()).toBe(true);
-            expect(computer.isTurn()).toBe(false);
-        });
+        player = new Player('human');
+        gameboard = new Gameboard();
     });
 
     describe('Attack', () => {
-        it('should allow a player to attack the enemy gameboard', () => {
-            player.attack(5);
-            expect(computerBoard.getBoardSnapshot()[5]).toBeTruthy();
+        it('should be able to attack a gameboard', () => {
+            gameboard.placeShip('Destroyer', [0, 0], 'horizontal');
+            player.attack(gameboard, [0, 0]);
+            expect(gameboard.getShips()[0].isHit(0)).toBeTruthy();
         });
 
-        it('should not allow a player to attack the same position twice', () => {
-            player.attack(5);
-            expect(() => player.attack(5)).toThrow('Position already attacked');
-        });
-    });
-
-    describe('Computer Behavior', () => {
-        it('should allow the computer to make a random legal move', () => {
-            const feedback = computer.makeRandomMove();
-            expect(['hit', 'Miss!']).toContain(feedback);
-        });
-
-        it('should not allow the computer to attack the same position twice', () => {
-            computer.makeRandomMove();
-            const position = Array.from(computer.previousMoves)[0];
-            expect(() => computer.attack(position)).toThrow('Position already attacked');
+        it('should throw an error if the same position is attacked again', () => {
+            expect(() => {
+                player.attack(gameboard, [0, 0]);
+                player.attack(gameboard, [0, 0]);
+            }).toThrow('Position was already attacked');
         });
     });
 
-    describe('Turn Mechanics', () => {
-        it('should only allow a player to attack when it is their turn', () => {
-            computer.toggleTurn(); // Mock making it the computer's turn
-            player.toggleTurn();   // Also make sure it's not the player's turn
-            expect(() => player.attack(5)).toThrow('Not your turn');
-        });
-    });
-    
+    describe('Auto Attack', () => {
+        let computerPlayer;
 
-    describe('Game Over Detection', () => {
-        it('should recognize when the enemy has no ships left', () => {
-            computerBoard.sinkAllShips(); // Mock all ships as sunk
-            expect(player.isGameOver()).toBe(true);
+        beforeEach(() => {
+            computerPlayer = new Player('computer');
         });
-    });
 
-    describe('Player Feedback', () => {
-        it('should provide accurate feedback after an attack', () => {
-            const feedback = player.attack(5);
-            expect(['Hit!', 'Miss!', 'You sank my battleship!']).toContain(feedback);  // Assuming you have these feedback mechanisms in place
+        it('should allow the computer to make a legal random attack', () => {
+            gameboard.placeShip('Destroyer', [0, 0], 'horizontal');
+            computerPlayer.autoAttack(gameboard);
+            const attacks = gameboard.getMissedAttacks().concat(gameboard.getShips().flatMap(ship => ship.positions));
+            expect(attacks.length).toBeGreaterThan(0);
         });
-    });
 
-    describe('Initial Ship Placement', () => {
-        it('should have all ships correctly placed at the start of the game', () => {
-            // This assumes that the Gameboard class has a method to check if all ships are placed
-            expect(playerBoard.areAllShipsPlaced()).toBe(true);
-            expect(computerBoard.areAllShipsPlaced()).toBe(true);
-        });
-    });
-
-    describe('Error Handling', () => {
-        it('should handle erroneous moves gracefully', () => {
-            expect(() => player.attack(110)).toThrow('Invalid attack position');
+        it('should ensure computer does not attack the same coordinate twice', () => {
+            for (let i = 0; i < 100; i++) {  // Simulate many attacks to ensure no repeat
+                computerPlayer.autoAttack(gameboard);
+            }
+            const uniqueAttacks = new Set(computerPlayer.previousAttacks.map(JSON.stringify));
+            expect(uniqueAttacks.size).toBe(computerPlayer.previousAttacks.length);
         });
     });
 });

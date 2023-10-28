@@ -1,69 +1,32 @@
 class Player {
-    constructor(name, playerBoard, enemyBoard, isStartingTurn = false) {
-        this.name = name;
-        this.playerBoard = playerBoard;
-        this.enemyBoard = enemyBoard;
-        this.turn = isStartingTurn; 
-        this.previousMoves = new Set(); 
-        this.unattackedPositions = new Set([...Array(100).keys()]);
+    constructor(type) {
+        this.type = type;
+        this.previousAttacks = [];
     }
 
-    getName() {
-        return this.name;
-    }
-
-    getPlayerBoard() {
-        return this.playerBoard;
-    }
-
-    getEnemyBoard() {
-        return this.enemyBoard;
-    }
-
-    isTurn() {
-        return this.turn;
-    }
-
-    toggleTurn() {
-        this.turn = !this.turn;
-    }
-
-    attack(position) {
-        if (position < 0 || position >= 100) {
-            throw new Error('Invalid attack position');
+    attack(gameboard, coords) {
+        if (this.previousAttacks.some(attack => attack[0] === coords[0] && attack[1] === coords[1])) {
+            throw new Error('Position was already attacked');
         }
-        if (this.previousMoves.has(position)) {
-            throw new Error('Position already attacked');
-        }
-        if (!this.turn) {
-            throw new Error('Not your turn');
-        }
-
-        this.previousMoves.add(position);
-        const feedback = this.enemyBoard.receiveAttack(position);
-        this.toggleTurn();
-        return feedback;
+        this.previousAttacks.push(coords);
+        gameboard.receiveAttack(coords);
     }
 
-    makeRandomMove() {
-        if (this.unattackedPositions.size === 0) {
-            throw new Error('All positions have been attacked');
-        }
+    autoAttack(gameboard) {
+        let coords;
+        do {
+            coords = this._getRandomCoordinates();
+        } while (this.previousAttacks.some(attack => attack[0] === coords[0] && attack[1] === coords[1]));
 
-        const positionsArray = [...this.unattackedPositions];
-        const randomIndex = Math.floor(Math.random() * positionsArray.length);
-        const position = positionsArray[randomIndex];
-        this.unattackedPositions.delete(position);
-        this.previousMoves.add(position);
-
-        const feedback = this.playerBoard.receiveAttack(position);
-        this.toggleTurn();
-
-        return feedback;
+        this.previousAttacks.push(coords);
+        gameboard.receiveAttack(coords);
+        return coords;  // return for testing purposes
     }
 
-    isGameOver() {
-        return this.enemyBoard.areAllShipsSunk();
+    _getRandomCoordinates() {
+        const x = Math.floor(Math.random() * 10);
+        const y = Math.floor(Math.random() * 10);
+        return [x, y];
     }
 }
 
