@@ -1,29 +1,20 @@
 import PropTypes from 'prop-types';
-import Cell from './Cell';
 
-const Board = ({ player }) => {
-  const generateBoard = () => {
-    let board = [];
-    for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
-            board.push(<Cell key={`${i}-${j}`} />);
-        }
-    }
-    return board;
-  };
-
-  return (
-    <div className="boardContainer">
-      <h2>{player} Board</h2>
-      <section className="gameBoard">
-        {generateBoard()}
-      </section>
-    </div>
-  );
-};
+function Board({ title }) {
+    return (
+        <div className="board-container">
+            <h2>{title} Board</h2>
+            <div className="board">
+                {Array(100).fill(null).map((_, index) => (
+                    <div key={index} className="cell"></div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 Board.propTypes = {
-  player: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired
 };
 
 export default Board;
