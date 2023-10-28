@@ -1,0 +1,23 @@
+.app {
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  
+  .boardContainer {
+    display: inline-block;
+    margin: 20px;
+  }
+  
+  .gameBoard {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    gap: 2px;
+  }
+  
+  .cell {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ddd;
+    background-color: #f4f4f4;
+  }
+  
