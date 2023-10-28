@@ -1,105 +1,104 @@
-import Ship from './Ship';
+import Ship from './Ship'; // Assuming the Ship class is in the same directory
 
 class Gameboard {
-    constructor(rows = 10, cols = 10) {
-        this.rows = rows;
-        this.cols = cols;
-        this.grid = Array(this.rows).fill(null).map(() => Array(this.cols).fill(null));
-        this.missedAttacks = [];
+    constructor() {
+        this.boardSize = 10; // for a 10x10 board
+        this.board = new Array(this.boardSize * this.boardSize).fill(null);
+        this.missedShots = [];
     }
 
-    placeShip(name, length, x, y, orientation = 'horizontal') {
-        // Check for valid orientation
-        if (!['horizontal', 'vertical'].includes(orientation)) {
-            throw new Error('Invalid orientation');
+    placeShip(ship, position, direction) {
+        // Check for valid direction
+        if (direction !== 'horizontal' && direction !== 'vertical') {
+            throw new Error('Invalid ship direction');
+        }
+
+        // Check if the ship can fit without going out of bounds
+        if ((direction === 'horizontal' && (position % this.boardSize) + ship.getSize() > this.boardSize) || 
+            (direction === 'vertical' && position + (this.boardSize * (ship.getSize() - 1)) >= this.board.length)) {
+            throw new Error('Invalid ship placement');
+        }
+
+        // Check for overlaps with other ships
+        for (let i = 0; i < ship.getSize(); i++) {
+            const currentPosition = direction === 'horizontal' ? position + i : position + (i * this.boardSize);
+            if (this.board[currentPosition]) {
+                throw new Error('Overlap with another ship');
+            }
+        }
+
+        // Place the ship on the board
+        for (let i = 0; i < ship.getSize(); i++) {
+            const currentPosition = direction === 'horizontal' ? position + i : position + (i * this.boardSize);
+            this.board[currentPosition] = ship;
+        }
+    }
+
+    getShipAt(position) {
+        return this.board[position];
+    }
+
+    receiveAttack(position) {
+        if (position < 0 || position >= this.board.length) {
+            throw new Error('Invalid attack position');
         }
     
-        // Initialize the ship with the provided orientation
-        const ship = new Ship(name, length, orientation);
+        const ship = this.getShipAt(position);
+        if (ship) {
+            const shipStart = this.board.indexOf(ship);
+            const orientation = this.getShipOrientation(ship); // You'll need to implement this method.
+            
+            let hitPosition;
+            if (orientation === 'horizontal') {
+                hitPosition = position - shipStart;
+            } else if (orientation === 'vertical') {
+                const boardWidth = Math.sqrt(this.board.length); // Assuming a square board
+                hitPosition = (position - shipStart) / boardWidth;
+            } else {
+                throw new Error('Unknown ship orientation');
+            }
     
-        if (orientation === 'horizontal') {
-            // Check for potential overlap and out of bounds
-            for (let i = 0; i < ship.length; i++) {
-                if (this.isOutOfBounds(x, y + i) || this.grid[x][y + i] !== null) {
-                    throw new Error('Invalid ship placement');
-                }
+            if (ship.isPositionHit(hitPosition)) {
+                throw new Error('Position already attacked');
             }
-            // Place the ship
-            for (let i = 0; i < ship.length; i++) {
-                this.grid[x][y + i] = ship;
-            }
+            ship.hit(hitPosition);
         } else {
-            // Check for potential overlap and out of bounds
-            for (let i = 0; i < ship.length; i++) {
-                if (this.isOutOfBounds(x + i, y) || this.grid[x + i][y] !== null) {
-                    throw new Error('Invalid ship placement');
-                }
+            if (this.missedShots.includes(position)) {
+                throw new Error('Position already attacked');
             }
-            // Place the ship
-            for (let i = 0; i < ship.length; i++) {
-                this.grid[x + i][y] = ship;
-            }
+            this.missedShots.push(position);
         }
     }
     
-
-    isOutOfBounds(row, col) {
-        return row < 0 || row >= this.rows || col < 0 || col >= this.cols;
-    }
-
-    receiveAttack(row, col) {
-        if (this.isOutOfBounds(row, col)) {
-            throw new Error('Invalid attack coordinates');
-        }
-
-        const ship = this.grid[row][col];
-        if (ship instanceof Ship) {
-            const shipStartRow = this.grid.findIndex((r) => r.includes(ship));
-            const shipStartCol = this.grid[shipStartRow].indexOf(ship);
-
-            const hitPosition = ship.orientation === 'horizontal'
-                ? col - shipStartCol
-                : row - shipStartRow;
-            try {
-                ship.hit(hitPosition);
-            } catch (error) {
-                if (error.message === 'Position already hit') {
-                    return;
-                }
-                throw error;
-            }
-        } else {
-            this.missedAttacks.push([row, col].toString());
-        }
+    // Implement this method to determine a ship's orientation.
+    getShipOrientation(ship) {
+        // If the difference between two occurrences of the same ship on the board is 1, it's horizontal.
+        const firstPos = this.board.indexOf(ship);
+        const secondPos = this.board.indexOf(ship, firstPos + 1);
+        return secondPos - firstPos === 1 ? 'horizontal' : 'vertical';
     }
 
     areAllShipsSunk() {
-        const checkedShips = new Set();
-    
-        for (let row = 0; row < this.rows; row++) {
-            for (let col = 0; col < this.cols; col++) {
-                const ship = this.grid[row][col];
-    
-                if (ship && !checkedShips.has(ship)) {
-                    checkedShips.add(ship);
-    
-                    if (!ship.isSunk()) {
-                        return false;
-                    }
-                }
-            }
-        }
-    
-        return true;
+        return this.board.filter(spot => spot instanceof Ship).every(ship => ship.isSunk());
     }
-    
 
-    getShipAt(row, col) {
-        if (this.grid[row][col] instanceof Ship) {
-            return this.grid[row][col];
-        }
-        return null;
+    getMissedShots() {
+        return this.missedShots;
+    }
+
+    getBoardSize() {
+        return this.boardSize * this.boardSize;
+    }
+
+    getBoardSnapshot() {
+        return this.board.map((spot, index) => {
+            if (this.missedShots.includes(index)) return 'missed';
+            if (spot && spot.isPositionHit(index - this.board.indexOf(spot))) return 'hit';
+            if (spot) return 'ship';
+            return null;
+        });
     }
 }
 
-export default Gameboard;
+export default Gameboard; 
+

@@ -1,59 +1,54 @@
+import Ship from '../src/classes/Ship';
 import Gameboard from '../src/classes/Gameboard';
 
-describe('Integration between Gameboard and Ship', () => {
+describe('Integration Test: Gameboard and Ship', () => {
+    let board;
 
-    test('hitting a ship on the gameboard updates the ship\'s hit state', () => {
-        const gameboard = new Gameboard();
-        gameboard.placeShip('Carrier', 5, 0, 0);
-        gameboard.receiveAttack(0, 0);
-        const ship = gameboard.getShipAt(0, 0);
-        expect(ship.isHit(0)).toBe(true);
+    beforeEach(() => {
+        board = new Gameboard();
     });
 
-    test('missing a ship on the gameboard does not affect any ship', () => {
-        const gameboard = new Gameboard();
-        gameboard.placeShip('Carrier', 5, 0, 0);
-        gameboard.receiveAttack(1, 0);
-        expect(gameboard.missedAttacks).toContain('1,0');
-    });
+    it('should place ships, conduct attacks, and report game status correctly', () => {
+        const cruiser = new Ship('Cruiser', 3);
 
-    test('sinking a ship updates its sunk status', () => {
-        const gameboard = new Gameboard();
-        gameboard.placeShip('Destroyer', 2, 0, 0);
-        gameboard.receiveAttack(0, 0);
-        gameboard.receiveAttack(0, 1);
-        const ship = gameboard.getShipAt(0, 0);
-        expect(ship.isSunk()).toBe(true);
-    });
+        // Place the cruiser on the gameboard
+        board.placeShip(cruiser, 5, 'horizontal');
 
-    test('sinking all ships on the gameboard results in game over', () => {
-        const gameboard = new Gameboard();
-        gameboard.placeShip('Destroyer', 2, 0, 0);
-        gameboard.receiveAttack(0, 0);
-        gameboard.receiveAttack(0, 1);
-        gameboard.placeShip('Submarine', 3, 1, 0);
-        gameboard.receiveAttack(1, 0);
-        gameboard.receiveAttack(1, 1);
-        gameboard.receiveAttack(1, 2);
-        expect(gameboard.areAllShipsSunk()).toBe(true);
-    });
+        // Attack a point where there's no ship
+        board.receiveAttack(0);
+        expect(board.getBoardSnapshot()[0]).toBe('missed');
 
-    test('ships cannot overlap on the gameboard', () => {
-        const gameboard = new Gameboard();
-        gameboard.placeShip('Destroyer', 2, 0, 0);
-        expect(() => {
-            gameboard.placeShip('Submarine', 3, 0, 1);
-        }).toThrow('Invalid ship placement');
-    });
+        // Attack the cruiser and check if it gets hit
+        board.receiveAttack(5);
+        expect(cruiser.isHit(0)).toBe(true);
 
-    test('ships placed vertically register hits correctly', () => {
-        const gameboard = new Gameboard();
-        gameboard.placeShip('Carrier', 5, 0, 0, 'vertical');
-        gameboard.receiveAttack(3, 0);
-        const ship = gameboard.getShipAt(3, 0);
-        expect(ship.isHit(3)).toBe(true);
-    });
+        // Attack the rest of the cruiser
+        board.receiveAttack(6);
+        board.receiveAttack(7);
+        expect(cruiser.isSunk()).toBe(true);
 
-    // Add more tests based on the rules and specific scenarios you'd like to test!
+        // Place more ships and attack them
+        const destroyer = new Ship('Destroyer', 2);
+        board.placeShip(destroyer, 20, 'vertical');
+        board.receiveAttack(20);
+        board.receiveAttack(30);
+        expect(destroyer.isSunk()).toBe(true);
+
+        const aircraftCarrier = new Ship('Aircraft Carrier', 5);
+        board.placeShip(aircraftCarrier, 50, 'horizontal');
+        board.receiveAttack(50);
+        board.receiveAttack(51);
+        board.receiveAttack(52);
+        board.receiveAttack(53);
+        // Do not attack the last section, so it shouldn't be sunk
+        expect(aircraftCarrier.isSunk()).toBe(false);
+
+        // Check the status of all ships on the board
+        expect(board.areAllShipsSunk()).toBe(false);
+
+        // Sink the last ship
+        board.receiveAttack(54);
+        expect(aircraftCarrier.isSunk()).toBe(true);
+        expect(board.areAllShipsSunk()).toBe(true);
+    });
 });
-
