@@ -80,10 +80,6 @@ class Gameboard {
         return this.ships.every(ship => ship.isSunk());
     }
     
-
-    allShipsSunk() {
-        return this.ships.every(ship => ship.isSunk());
-    }
 }
 
 export default Gameboard;

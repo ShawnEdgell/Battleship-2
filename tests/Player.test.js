@@ -43,8 +43,8 @@ describe('Player', () => {
             for (let i = 0; i < 100; i++) {  // Simulate many attacks to ensure no repeat
                 computerPlayer.autoAttack(gameboard);
             }
-            const uniqueAttacks = new Set(computerPlayer.previousAttacks.map(JSON.stringify));
-            expect(uniqueAttacks.size).toBe(computerPlayer.previousAttacks.length);
+            const uniqueAttacks = new Set(computerPlayer.getAllAttacks().map(JSON.stringify));
+            expect(uniqueAttacks.size).toBe(computerPlayer.getAllAttacks().length);
         });
     });
 });
