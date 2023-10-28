@@ -13,6 +13,23 @@ class Gameboard {
         return this.ships;
     }
 
+    getBoardState() {
+        let board = Array(this.size).fill().map(() => Array(this.size).fill(null));
+    
+        for (const ship of this.ships) {
+            for (const pos of ship.positions) {
+                board[pos[0]][pos[1]] = ship.isHit(pos) ? "hit" : "ship";
+            }
+        }
+    
+        for (const miss of this.missedAttacks) {
+            board[miss[0]][miss[1]] = "miss";
+        }
+    
+        return board;
+    }
+    
+
     placeShip(name, startCoords, orientation) {
         const ship = new Ship(name, Ship.SHIP_DETAILS[name]);
 
@@ -55,23 +72,24 @@ class Gameboard {
         this.attackedPositions.push(coords);
     
         for (const ship of this.ships) {
-            for (let i = 0; i < ship.positions.length; i++) {
-                if (ship.positions[i][0] === coords[0] && ship.positions[i][1] === coords[1]) {
-                    ship.hit(i);
-                    hitRegistered = true;
-                    break;
-                }
+            const positionIndex = ship.positions.findIndex(position => 
+                position[0] === coords[0] && position[1] === coords[1]
+            );
+
+            if (positionIndex !== -1) {
+                ship.hit(positionIndex);
+                hitRegistered = true;
+                break;
             }
-            if (hitRegistered) break;  // This ensures we exit the outer loop once a hit is registered
         }
-    
+
         if (!hitRegistered) {
             this.missedAttacks.push(coords);
         }
     }
 
-     // Return the missed attacks
-     getMissedAttacks() {
+    // Return the missed attacks
+    getMissedAttacks() {
         return this.missedAttacks;
     }
 
@@ -79,7 +97,6 @@ class Gameboard {
     areAllShipsSunk() {
         return this.ships.every(ship => ship.isSunk());
     }
-    
 }
 
 export default Gameboard;

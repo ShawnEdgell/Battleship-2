@@ -1,6 +1,7 @@
 class Player {
-    constructor(type) {
+    constructor(type, gameboard) {
         this.type = type;
+        this.gameboard = gameboard;
         this.attacks = [];
         this.allCoordinates = this._generateAllCoordinates();
         this.shuffleArray(this.allCoordinates);
@@ -21,7 +22,7 @@ class Player {
 
         const coords = this.allCoordinates.pop();
         this.attack(gameboard, coords);
-        return coords;  // Return for testing purposes
+        return coords;  // Return for potential UI feedback
     }
 
     getAllAttacks() {

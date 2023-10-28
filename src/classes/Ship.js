@@ -17,6 +17,7 @@ class Ship {
         this.name = name;
         this.size = size;
         this.hits = new Array(size).fill(false);
+        this.positions = [];
     }
 
     getName() {
