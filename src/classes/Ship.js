@@ -1,21 +1,22 @@
 class Ship {
+    static SHIP_DETAILS = {
+        'Aircraft Carrier': 5,
+        'Battleship': 4,
+        'Cruiser': 3,
+        'Submarine': 3,
+        'Destroyer': 2
+    };
+
     constructor(name, size) {
-        if (typeof name !== 'string') {
-            throw new Error('Ship name (title) must be a string');
+        if (!Ship.SHIP_DETAILS[name]) {
+            throw new Error(`Invalid ship name: ${name}. Must be one of: ${Object.keys(Ship.SHIP_DETAILS).join(', ')}`);
         }
-        if (name.length === 0) {
-            throw new Error('Ship name (title) must not be empty');
-        }
-        if (!Number.isInteger(size) || size <= 0) {
-            throw new Error('Invalid ship size');
+        if (Ship.SHIP_DETAILS[name] !== size) {
+            throw new Error(`Invalid size for ${name}. Expected ${Ship.SHIP_DETAILS[name]}.`);
         }
         this.name = name;
         this.size = size;
         this.hits = new Array(size).fill(false);
-    }
-
-    isPositionHit(position) {
-        return this.hits[position] === true;
     }
 
     getName() {
