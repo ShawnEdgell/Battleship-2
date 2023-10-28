@@ -141,6 +141,45 @@ describe('Gameboard', () => {
         });
     });
 
+    describe('sinkAllShips', () => {
+        it('should sink all ships on the board', () => {
+            const board = new Gameboard();
+            const ship = new Ship('Test Ship', 3);
+            board.placeShip(ship, 5, 'horizontal');
+            board.sinkAllShips();
+            expect(ship.isSunk()).toBe(true);
+        });
+    });
+
+    // New tests for ship placement:
+    describe('areAllShipsPlaced', () => {
+        it('should return false if not all ships are placed', () => {
+            const board = new Gameboard();
+            expect(board.areAllShipsPlaced()).toBe(false);
+        });
+
+        it('should return true if all ships are placed', () => {
+            const board = new Gameboard();
+
+            const aircraftCarrier = new Ship('Aircraft Carrier', 5);
+            board.placeShip(aircraftCarrier, 0, 'horizontal');
+
+            const battleship = new Ship('Battleship', 4);
+            board.placeShip(battleship, 10, 'horizontal');
+
+            const cruiser = new Ship('Cruiser', 3);
+            board.placeShip(cruiser, 20, 'horizontal');
+
+            const submarine = new Ship('Submarine', 3);
+            board.placeShip(submarine, 30, 'horizontal');
+
+            const destroyer = new Ship('Destroyer', 2);
+            board.placeShip(destroyer, 40, 'horizontal');
+
+            expect(board.areAllShipsPlaced()).toBe(true);
+        });
+    });
+
     describe('getBoardSnapshot', () => {
         it('should return a snapshot representation of the board', () => {
             const board = new Gameboard();

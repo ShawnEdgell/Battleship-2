@@ -5,6 +5,16 @@ class Gameboard {
         this.boardSize = 10; // for a 10x10 board
         this.board = new Array(this.boardSize * this.boardSize).fill(null);
         this.missedShots = [];
+        
+        // Initialize required ships
+        this.requiredShips = [
+            {name: 'Battleship', size: 4},
+            {name: 'Cruiser', size: 3},
+            {name: 'Submarine', size: 3},
+            {name: 'Destroyer', size: 2},
+            {name: 'PatrolBoat', size: 2}
+        ];
+        this.placedShips = [];
     }
 
     placeShip(ship, position, direction) {
@@ -32,6 +42,12 @@ class Gameboard {
             const currentPosition = direction === 'horizontal' ? position + i : position + (i * this.boardSize);
             this.board[currentPosition] = ship;
         }
+
+        // After placing a ship, add it to the placedShips list
+        if(!this.placedShips.includes(ship.name)) {
+            this.placedShips.push(ship.name);
+        }
+        
     }
 
     getShipAt(position) {
@@ -46,8 +62,8 @@ class Gameboard {
         const ship = this.getShipAt(position);
         if (ship) {
             const shipStart = this.board.indexOf(ship);
-            const orientation = this.getShipOrientation(ship); // You'll need to implement this method.
-            
+            const orientation = this.getShipOrientation(ship);
+    
             let hitPosition;
             if (orientation === 'horizontal') {
                 hitPosition = position - shipStart;
@@ -61,14 +77,25 @@ class Gameboard {
             if (ship.isPositionHit(hitPosition)) {
                 throw new Error('Position already attacked');
             }
+    
             ship.hit(hitPosition);
+    
+            if(ship.isSunk()) {
+                return `You sank my ${ship.name}!`;
+            }
+            return 'Hit!';
         } else {
             if (this.missedShots.includes(position)) {
                 throw new Error('Position already attacked');
             }
+    
             this.missedShots.push(position);
+            return 'Miss!';
         }
     }
+
+    
+    
     
     // Implement this method to determine a ship's orientation.
     getShipOrientation(ship) {
@@ -80,6 +107,34 @@ class Gameboard {
 
     areAllShipsSunk() {
         return this.board.filter(spot => spot instanceof Ship).every(ship => ship.isSunk());
+    }
+
+    sinkAllShips() {
+        const sunkShips = [];
+    
+        this.board.forEach((spot) => {
+            if (spot instanceof Ship && !sunkShips.includes(spot)) {
+                for(let i = 0; i < spot.getSize(); i++) {
+                    const shipStart = this.board.indexOf(spot);
+                    const currentPosition = (this.getShipOrientation(spot) === 'horizontal') 
+                        ? shipStart + i 
+                        : shipStart + (i * this.boardSize);
+    
+                    if (!spot.isPositionHit(currentPosition - shipStart)) {
+                        spot.hit(currentPosition - shipStart);
+                    }
+                }
+                sunkShips.push(spot);
+            }
+        });
+    }
+    
+    
+
+    areAllShipsPlaced() {
+        return this.requiredShips.every(shipInfo => {
+            return this.placedShips.includes(shipInfo.name);
+        });
     }
 
     getMissedShots() {
